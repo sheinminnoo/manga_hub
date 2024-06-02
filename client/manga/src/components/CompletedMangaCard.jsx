@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const MangaCard = ({ manga }) => {
+const CompletedMangaCard = ({ manga }) => {
     return (
         <Link to={`/manga/${manga._id}`} key={manga._id}>
             <div className="bg-white shadow-lg rounded-lg overflow-hidden transform transition-transform hover:scale-105 hover:shadow-xl">
@@ -23,4 +23,4 @@ const MangaCard = ({ manga }) => {
     );
 };
 
-export default MangaCard;
+export default CompletedMangaCard;

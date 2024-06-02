@@ -1,4 +1,7 @@
 const Manga = require("../models/Manga");
+const User = require("../models/User");
+
+const emailQueue = require('../Queues/emailQueue')
 
 exports.getAllManga = async (req, res) => {
   try {
@@ -22,7 +25,20 @@ exports.createManga = async (req, res) => {
 
   try {
     const newManga = await manga.save();
-    res.status(201).json(newManga);
+    let users = await User.find(null,['email']);
+    let emails = users.map(user=>user.email);
+    emails = emails.filter(email=>email !== req.user.email)
+    emailQueue.add({
+      view : 'email',
+      data : {
+          name : req.user.username,
+          manga
+      },
+      from : req.user.email,
+      to : emails,
+      subject : "New Manga is created recendly."
+  })
+    return res.status(201).json(newManga);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -58,6 +74,15 @@ exports.getOngoingManga = async (req, res) => {
   try {
     const ongoingManga = await Manga.find({ ongoing: true });
     res.json(ongoingManga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getCompletedManga = async (req, res) => {
+  try {
+    const completedManga = await Manga.find({ ongoing: false });
+    res.json(completedManga);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

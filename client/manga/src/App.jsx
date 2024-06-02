@@ -1,17 +1,18 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer'; // Import the footer component
+import Footer from './components/Footer';
 
 function App() {
     return (
         <>
-            <div className="pt-16">
-                <Navbar />
+            <Navbar />
+            <div className="flex-grow pt-16">
                 <Outlet />
             </div>
-            <Footer /> {/* Include the footer component */}
+            <Footer /> 
         </>
+
     );
 }
 

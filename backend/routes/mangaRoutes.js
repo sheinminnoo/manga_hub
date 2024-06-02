@@ -10,5 +10,6 @@ router.get('/', mangaController.getAllManga);
 router.post('/', mangaController.createManga);
 router.get('/:id/related', mangaController.getRelatedManga);
 router.get('/status/ongoing', mangaController.getOngoingManga);
+router.get('/status/completed', mangaController.getCompletedManga);
 
 module.exports = router;
