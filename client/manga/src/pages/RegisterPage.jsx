@@ -145,7 +145,6 @@ const Register = () => {
                             >
                                 <option value="user">User</option>
                                 <option value="admin">Admin</option>
-                                <option value="CEO">CEO</option>
                             </select>
                         </div>
                         <div className="flex items-center justify-between">
