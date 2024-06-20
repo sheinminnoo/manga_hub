@@ -64,7 +64,7 @@ const ChapterDetail = () => {
       try {
         const res = await axios.get(`/api/comments/${chapterId}/comments`);
         if (res.status === 200) {
-          setComments(res.data);
+          setComments(res.data.reverse());
         }
       } catch (err) {
         setError(err.message);
@@ -79,7 +79,7 @@ const ChapterDetail = () => {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.status === 201) {
-        setComments([...comments, res.data]);
+        setComments([res.data, ...comments]); 
         setNewComment('');
       }
     } catch (err) {
@@ -125,14 +125,14 @@ const ChapterDetail = () => {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-4"
     >
-      <h1 className="text-center text-3xl font-bold mb-6 text-gray-800">{chapter.title}</h1>
+      <h1 className="text-center text-3xl font-bold mb-6 text-white">{chapter.title}</h1>
       <div className="space-y-4 pb-20">
         {chapter.pages.map((page, index) => (
           <img key={index} src={page} alt={`Page ${index + 1}`} className="w-full rounded-lg shadow-md" />
         ))}
       </div>
       <div className="mt-8 pb-20">
-  <h2 className="text-2xl font-semibold mb-6 text-gray-800">Comments</h2>
+  <h2 className="text-2xl font-semibold mb-6 text-white">Comments</h2>
   {user && (
     <div className="mb-6 flex flex-col space-y-4">
       <textarea
@@ -153,7 +153,8 @@ const ChapterDetail = () => {
     {comments.map((comment) => (
       <div key={comment._id} className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md">
         <img
-          src={comment.userAvatar || 'https://media1.tenor.com/m/wRY6wTo2rOwAAAAC/hajime-hinata.gif'}
+          //src={import.meta.env.VITE_BACKEND_URL + comment.profile}
+          src='https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjkzNy1hZXctMTY1LnBuZw.png'
           alt={comment.username}
           className="w-12 h-12 rounded-full"
         />
@@ -208,7 +209,7 @@ const ChapterDetail = () => {
 
       {relatedChapters.length > 0 && (
         <div className="mt-8 pb-20">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">Related Chapters</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-white">Related Chapters</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {relatedChapters.map(chap => (
               <Link to={`/chapter/${chap._id}`} key={chap._id} className="block bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">

@@ -1,6 +1,5 @@
 const Manga = require("../models/Manga");
 const User = require("../models/User");
-
 const emailQueue = require('../Queues/emailQueue')
 
 exports.getAllManga = async (req, res) => {

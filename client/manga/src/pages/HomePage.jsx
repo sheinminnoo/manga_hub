@@ -54,7 +54,7 @@ const HomePage = () => {
 
     const renderSection = (title, mangas, Component) => (
         <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-4">{title}</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-white">{title}</h2>
             <div className="flex overflow-x-auto space-x-4 pb-4 smooth-scroll">
                 {mangas.map(manga => (
                     <div className="flex-shrink-0 w-64" key={manga._id}>
@@ -73,7 +73,7 @@ const HomePage = () => {
             transition={{ duration: 0.5 }}
         >
             {loading ? (
-                <div className="flex items-center justify-center text-gray-600">
+                <div className="flex items-center justify-center text-gray-900">
                     <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
                     Loading Manga...
                 </div>

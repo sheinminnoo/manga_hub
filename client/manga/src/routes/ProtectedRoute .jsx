@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProtectedRoute = ({ element }) => {
+const ProtectedRoute = ({ element, allowedRoles }) => {
     const { user } = useContext(AuthContext);
     const location = useLocation();
     const navigate = useNavigate();
@@ -20,7 +20,15 @@ const ProtectedRoute = ({ element }) => {
         }
     }, [user, navigate, location.pathname]);
 
-    return user ? element : <Navigate to="/login" />;
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" />;
+    }
+
+    return element;
 };
 
 export default ProtectedRoute;

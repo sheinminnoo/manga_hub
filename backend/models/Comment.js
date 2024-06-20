@@ -18,6 +18,10 @@ const commentSchema = new mongoose.Schema({
   text: {
     type: String,
     required: true
+  },
+  profile: {
+    type: String,  // This should be a String to store the profile picture URL or other profile information
+    required: false
   }
 }, { timestamps: true });
 

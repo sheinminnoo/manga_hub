@@ -2,14 +2,44 @@ const createToken = require('../helpers/createToken');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const Token = require('../models/Token');
-const UserPhoto = require('../models/UserPhoto');
-
+const { default: mongoose } = require('mongoose');
+const fs = require('fs').promises;
 const UserController = {
 
   me : async (req,res) => {
     return res.json(req.user);
   },
-  
+
+  uploadProfile: async (req, res) => {
+    try {
+      let id = req.user._id;
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ msg: "Not a valid id" });
+      }
+      let user = await User.findByIdAndUpdate(id, {
+        profile: '/' + req.file.filename
+      });
+      let fileExists;
+      let path = __dirname+"/../public"+user.profile;
+      try{
+        await fs.access(path);
+        fileExists = true;
+      }catch {
+        fileExists = false;
+      }
+      if(fileExists){
+        fs.unlink(path);
+      }
+      if (!user) {
+        return res.status(404).json({ msg: "Not found user" });
+      }
+      return res.json(user);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+
   register: async (req, res) => {
     try {
       const { username, email, password, cpassword, role } = req.body;

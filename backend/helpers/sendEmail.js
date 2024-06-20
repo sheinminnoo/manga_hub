@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const ejs = require('ejs');
 
+
 let sendEmail = async ({view,data,from,to,subject}) => {
     try{
         var transport = nodemailer.createTransport({

@@ -12,13 +12,16 @@ const commentController = {
 
   createComment: async (req, res) => {
     try {
+      const user = req.user
       const { text } = req.body;
       const newComment = new Comment({
         chapterId: req.params.chapterId,
-        userId: req.user._id,
+        userId: user._id,
         text ,
-        username : req.user.username
+        username : user.username,
+        profile : user.profile
       });
+      console.log(newComment)
       const savedComment = await newComment.save();
       res.status(201).json(savedComment);
     } catch (err) {

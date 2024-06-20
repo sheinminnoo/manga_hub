@@ -45,13 +45,13 @@ const mangaRoutes = require('./routes/mangaRoutes');
 const chapterRoutes = require('./routes/chapterRoutes');
 const userRoutes = require('./routes/userRoutes');
 const commentRoutes = require('./routes/commentRoutes');
-
+const contactRoutes = require('./routes/contactRoutes');
 // Use routes
 app.use('/api/manga', AuthMiddleware, mangaRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/comments', commentRoutes); // Add comment routes
-
+app.use('/api/contact',contactRoutes);
 // Database connection
 const MONGODB_URL = process.env.MONGODB_URL;
 

@@ -12,7 +12,9 @@ import { AuthContext } from '../contexts/AuthContext';
 import CreateManga from '../pages/CreateManga';
 import CreateChapter from '../pages/CreateChapter';
 import Dashboard from '../pages/Dashboard';
-import ProtectedRoute from './ProtectedRoute ';
+import ProtectedRoute from '../routes/ProtectedRoute ';
+import Message from '../components/Message';
+import NotFoundPage from '../pages/404Page';
 
 const LoadingSpinner = () => {
     return (
@@ -52,7 +54,11 @@ const Routes = () => {
                 },
                 {
                     path: '/contact',
-                    element: <ContactPage />
+                    element: <ProtectedRoute element={<ContactPage />} />
+                },
+                {
+                    path: '/message',
+                    element: <ProtectedRoute element={<Message />} allowedRoles={['admin', 'CEO']} />
                 },
                 {
                     path: '/login',
@@ -64,16 +70,20 @@ const Routes = () => {
                 },
                 {
                     path: '/create',
-                    element: <ProtectedRoute element={<CreateManga />} />
+                    element: <ProtectedRoute element={<CreateManga />} allowedRoles={['admin', 'CEO']} />
                 },
                 {
                     path: '/create/chapter',
-                    element: <ProtectedRoute element={<CreateChapter />} />
+                    element: <ProtectedRoute element={<CreateChapter />} allowedRoles={['admin', 'CEO']} />
                 },
                 {
                     path: '/:role/dashboard',
                     element: <ProtectedRoute element={<Dashboard />} />
-                }                        
+                },
+                {
+                    path: '*',
+                    element: <NotFoundPage />
+                }
             ]
         },
     ]);
