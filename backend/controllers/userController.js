@@ -47,12 +47,8 @@ const UserController = {
       if (userExist) {
         return res.status(400).json({ error: 'User already registered' });
       }
-      const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@])[A-Za-z\d@]{8,}$/;
       if (password !== cpassword) {
         return res.status(400).json({ error: 'Passwords do not match' });
-      }
-      if (!passwordRegex.test(password)) {
-        return res.status(400).json({ error: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@)' });
       }
       const hashValue = await bcrypt.hash(password, 10);
       const newUser = await User.create({ username, email, password: hashValue, role });

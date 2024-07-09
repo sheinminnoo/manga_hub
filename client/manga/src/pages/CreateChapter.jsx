@@ -1,18 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from '../helpers/axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import './styles.css';
 
 const CreateChapter = () => {
+  const { id } = useParams();
   const [mangaId, setMangaId] = useState('');
   const [title, setTitle] = useState('');
   const [number, setNumber] = useState(1);
   const [pages, setPages] = useState([]);
   const [pageInput, setPageInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchChapter = async () => {
+      if (id) {
+        try {
+          const res = await axios.get(`/api/chapters/detail/${id}`);
+          if (res.status === 200) {
+            const chapter = res.data;
+            setMangaId(chapter.mangaId);
+            setTitle(chapter.title);
+            setNumber(chapter.number);
+            setPages(chapter.pages);
+          }
+        } catch (error) {
+          console.error('Error fetching chapter:', error);
+        }
+      }
+    };
+    fetchChapter();
+  }, [id]);
 
   const handleAddPage = () => {
     if (pageInput.trim() !== '') {
@@ -34,38 +55,46 @@ const CreateChapter = () => {
   };
 
   const handleErrors = (error) => {
-    console.error("Error:", error);
+    console.error('Error:', error);
     if (error.response) {
-      console.error("Oops :((:", error.response.data);
-      toast.error("Oops :((: " + error.response.data.error);
+      console.error('Oops :((:', error.response.data);
+      toast.error('Oops :((: ' + error.response.data.error);
     } else if (error.request) {
-      console.error("No response received from the server.");
-      toast.error("Error creating chapter. Please try again later.");
+      console.error('No response received from the server.');
+      toast.error('Error creating chapter. Please try again later.');
     } else {
-      console.error("Error setting up the request:", error.message);
-      toast.error("Error creating chapter. Please try again later.");
+      console.error('Error setting up the request:', error.message);
+      toast.error('Error creating chapter. Please try again later.');
     }
   };
 
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+    const chapterData = {
+      mangaId,
+      title,
+      number,
+      pages,
+    };
     try {
-      event.preventDefault();
-      setIsLoading(true);
-      const newChapter = {
-        mangaId,
-        title,
-        number,
-        pages,
-      };
-      const res = await axios.post('/api/chapters', newChapter);
-      if (res.status === 201) {
-        toast.success("Chapter Created Successfully.");
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        clearForm();
-        navigate(`/manga/${mangaId}`);
+      let res;
+      if (id) {
+        res = await axios.patch(`/api/chapters/detail/${id}`, chapterData);
+        if (res.status === 200) {
+          toast.success('Chapter Updated Successfully.');
+        }
+      } else {
+        res = await axios.post('/api/chapters', chapterData);
+        if (res.status === 201) {
+          toast.success('Chapter Created Successfully.');
+        }
       }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      clearForm();
+      navigate(`/manga/${mangaId}`);
     } catch (error) {
       handleErrors(error);
     } finally {
@@ -82,10 +111,12 @@ const CreateChapter = () => {
     >
       <div className="flex justify-center pb-10">
         <div className="max-w-xl w-full bg-white rounded-lg shadow-lg p-8 md:p-12">
-          <h2 className="text-3xl font-bold text-center mb-8">Create New Chapter</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">{id ? 'Edit Chapter' : 'Create New Chapter'}</h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="mangaId" className="block font-semibold mb-2">Manga ID</label>
+              <label htmlFor="mangaId" className="block font-semibold mb-2">
+                Manga ID
+              </label>
               <input
                 id="mangaId"
                 type="text"
@@ -97,7 +128,9 @@ const CreateChapter = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="title" className="block font-semibold mb-2">Title</label>
+              <label htmlFor="title" className="block font-semibold mb-2">
+                Title
+              </label>
               <input
                 id="title"
                 type="text"
@@ -109,7 +142,9 @@ const CreateChapter = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="number" className="block font-semibold mb-2">Number</label>
+              <label htmlFor="number" className="block font-semibold mb-2">
+                Number
+              </label>
               <input
                 id="number"
                 type="number"
@@ -121,21 +156,23 @@ const CreateChapter = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="pages" className="block font-semibold mb-2">Pages</label>
+              <label htmlFor="pages" className="block font-semibold mb-2">
+                Pages
+              </label>
               <div className="mb-4 overflow-auto max-h-40">
-                {pages.map((page, index) => (
-                    <div key={index} className="page-badge">
-                    {page}
-                    <button
-                        type="button"
-                        onClick={() => handleRemovePage(index)}
-                        className="remove-button"
-                    >
-                        &times;
-                    </button>
-                    </div>
-                ))}
+              {Array.isArray(pages) && pages.map((page, index) => (
+                <div key={index} className="page-badge">
+                  {page}
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePage(index)}
+                    className="remove-button"
+                  >
+                    &times;
+                  </button>
                 </div>
+              ))}
+              </div>
               <div className="flex items-center">
                 <input
                   id="pageInput"
@@ -160,7 +197,7 @@ const CreateChapter = () => {
                 className="submit-button"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating Chapter..." : "Create Chapter"}
+                {isLoading ? 'Saving...' : id ? 'Update Chapter' : 'Create Chapter'}
               </button>
             </div>
           </form>

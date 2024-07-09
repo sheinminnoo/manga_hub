@@ -24,6 +24,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+
 // Nodemailer example route
 app.get('/send-email', async (req, res) => {
     try {
@@ -46,12 +47,17 @@ const chapterRoutes = require('./routes/chapterRoutes');
 const userRoutes = require('./routes/userRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const imagesRoutes = require('./routes/images');
+const favoriteRoutes = require('./routes/favoriteRoutes')
 // Use routes
 app.use('/api/manga', AuthMiddleware, mangaRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/comments', commentRoutes); // Add comment routes
 app.use('/api/contact',contactRoutes);
+app.use('/api/images',imagesRoutes);
+app.use('/api/favorite',favoriteRoutes)
+
 // Database connection
 const MONGODB_URL = process.env.MONGODB_URL;
 

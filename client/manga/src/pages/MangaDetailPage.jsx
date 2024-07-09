@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useContext, useEffect, useState } from 'react';
+import axios from '../helpers/axios';
 import { Link, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import RelatedMangaCard from '../components/RelatedMangaCard';
+import {AuthContext} from '../contexts/AuthContext'
 
 const MangaDetail = () => {
     const [manga, setManga] = useState(null);
@@ -13,7 +14,10 @@ const MangaDetail = () => {
     const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState(null);
     const [showAllChapters, setShowAllChapters] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
     let { id } = useParams();
+    const {user : me} = useContext(AuthContext)
+    const userId = me._id; 
 
     useEffect(() => {
         const fetchManga = async () => {
@@ -59,12 +63,37 @@ const MangaDetail = () => {
         fetchChapters();
     }, [id]);
 
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            try {
+                const res = await axios.get(`/api/favorite/${userId}/${id}`);
+                if (res.status === 200) {
+                    setIsFavorite(res.data.isFavorite);
+                }
+            } catch (error) {
+                console.error('Error checking favorite status:', error);
+            }
+        };
+        checkFavoriteStatus();
+    }, [id, userId]);
+
     const handleShowMoreChapters = () => {
         setShowAllChapters(true);
     };
 
     const handleShowLessChapters = () => {
         setShowAllChapters(false);
+    };
+
+    const handleFavorite = async () => {
+        try {
+            const res = await axios.post('/api/favorite', { userId, mangaId: id });
+            if (res.status === 201) {
+                setIsFavorite(true);
+            }
+        } catch (error) {
+            console.error('Error adding to favorites:', error);
+        }
     };
 
     return (
@@ -84,53 +113,63 @@ const MangaDetail = () => {
                     {errors && <div className="text-red-600">{errors}</div>}
                     {manga ? (
                         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
-    <div className="mb-8">
-        <img src={manga.coverImage} alt={manga.title} className="w-full h-auto object-contain rounded-xl" />
-    </div>
-    <h2 className="text-4xl font-extrabold text-gray-900 mb-4">{manga.title}</h2>
-    <h3 className="text-2xl font-semibold text-gray-700 mb-2">Author: {manga.author}</h3>
-    <p className="text-lg text-gray-800 mb-4 leading-relaxed">{manga.description}</p>
-    <div className="flex flex-wrap text-gray-600 mb-4">
-        <div className="mr-4">
-            <span className="font-medium">Genres:</span> {manga.genres.join(', ')}
-        </div>
-        <div className="mr-4">
-            <span className="font-medium">Popularity:</span> {manga.popularity}
-        </div>
-        <div>
-            <span className="font-medium">Ongoing:</span> {manga.ongoing ? 'Ongoing' : 'Completed'}
-        </div>
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
-        {chapters.slice(0, showAllChapters ? chapters.length : 5).map((chapter) => (
-            <div key={chapter._id} className="bg-gray-50 p-6 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
-                <Link to={`/chapter/${chapter._id}`} className="block text-blue-600 hover:underline text-lg">
-                    {chapter.title}
-                </Link>
-            </div>
-        ))}
-    </div>
-    {!showAllChapters ? (
-        <motion.button 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 mt-8 rounded-lg transition duration-300"
-            onClick={handleShowMoreChapters}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-        >
-            Show More Chapters
-        </motion.button>
-    ) : (
-        <motion.button 
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 mt-8 rounded-lg transition duration-300"
-            onClick={handleShowLessChapters}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-        >
-            Show Less Chapters
-        </motion.button>
-    )}
-</div>
-                   
+                            <div className="mb-8">
+                                <img src={manga.coverImage} alt={manga.title} className="w-full h-auto object-contain rounded-xl" />
+                            </div>
+                            <h2 className="text-4xl font-extrabold text-gray-900 mb-4">{manga.title}</h2>
+                            <h3 className="text-2xl font-semibold text-gray-700 mb-2">Author: {manga.author}</h3>
+                            <p className="text-lg text-gray-800 mb-4 leading-relaxed">{manga.description}</p>
+                            <div className="flex flex-wrap text-gray-600 mb-4">
+                                <div className="mr-4">
+                                    <span className="font-medium">Genres:</span> {manga.genres.join(', ')}
+                                </div>
+                                <div className="mr-4">
+                                    <span className="font-medium">Popularity:</span> {manga.popularity}
+                                </div>
+                                <div>
+                                    <span className="font-medium">Ongoing:</span> {manga.ongoing ? 'Ongoing' : 'Completed'}
+                                </div>
+                            </div>
+                            <motion.button
+                                className={`${
+                                    isFavorite ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+                                } text-white font-bold py-2 px-4 rounded-lg transition duration-300`}
+                                onClick={handleFavorite}
+                                disabled={isFavorite}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                {isFavorite ? 'Added to Favorites' : 'Add to Favorites'}
+                            </motion.button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
+                                {chapters.slice(0, showAllChapters ? chapters.length : 5).map((chapter) => (
+                                    <div key={chapter._id} className="bg-gray-50 p-6 rounded-lg shadow-md hover:bg-gray-100 transition duration-300">
+                                        <Link to={`/chapter/${chapter._id}`} className="block text-blue-600 hover:underline text-lg">
+                                            {chapter.title}
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                            {!showAllChapters ? (
+                                <motion.button 
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 mt-8 rounded-lg transition duration-300"
+                                    onClick={handleShowMoreChapters}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Show More Chapters
+                                </motion.button>
+                            ) : (
+                                <motion.button 
+                                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 mt-8 rounded-lg transition duration-300"
+                                    onClick={handleShowLessChapters}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Show Less Chapters
+                                </motion.button>
+                            )}
+                        </div>
                     ) : (
                         <div>Loading...</div>
                     )}

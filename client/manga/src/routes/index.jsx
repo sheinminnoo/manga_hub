@@ -15,6 +15,8 @@ import Dashboard from '../pages/Dashboard';
 import ProtectedRoute from '../routes/ProtectedRoute ';
 import Message from '../components/Message';
 import NotFoundPage from '../pages/404Page';
+import UploadImage from '../pages/UploadImage';
+import ViewFavorites from '../components/ViewFavorites';
 
 const LoadingSpinner = () => {
     return (
@@ -73,12 +75,28 @@ const Routes = () => {
                     element: <ProtectedRoute element={<CreateManga />} allowedRoles={['admin', 'CEO']} />
                 },
                 {
+                    path: '/uploadImage',
+                    element: <ProtectedRoute element={<UploadImage />} allowedRoles={['admin', 'CEO']} />
+                },
+                {
+                    path: '/edit/:id',
+                    element: <ProtectedRoute element={<CreateManga />} allowedRoles={['admin', 'CEO']} />
+                },
+                {
                     path: '/create/chapter',
+                    element: <ProtectedRoute element={<CreateChapter />} allowedRoles={['admin', 'CEO']} />
+                },
+                {
+                    path: '/edit/chapters/:id',
                     element: <ProtectedRoute element={<CreateChapter />} allowedRoles={['admin', 'CEO']} />
                 },
                 {
                     path: '/:role/dashboard',
                     element: <ProtectedRoute element={<Dashboard />} />
+                },
+                {
+                    path: '/favorites',
+                    element: <ProtectedRoute element={<ViewFavorites />} />
                 },
                 {
                     path: '*',

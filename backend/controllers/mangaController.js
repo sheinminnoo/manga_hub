@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Manga = require("../models/Manga");
 const User = require("../models/User");
 const emailQueue = require('../Queues/emailQueue')
@@ -42,6 +43,49 @@ exports.createManga = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+exports.editManga = async(req,res)=>{
+  try{
+    let user = req.user;
+    console.log(user)
+    if(req.user.role==="CEO" || req.user.role==="admin"){
+      let id = req.params.id;
+      if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.json({Msg:"not a valid id"}).status(400);
+      };
+      let manga = await Manga.findByIdAndUpdate(id ,{
+        ...req.body
+      });
+      if(!manga){
+        return res.json({msg : "Not found Manga"})
+      };
+      return res.json(manga)
+    }
+    return res.json({msg : "You are not accessed to edit manga"}).status(400);
+  }catch(err){
+    return res.status(400).json({ message: err.message });
+  }
+},
+
+exports.destroy = async (req,res) =>{
+  try {
+    let user = req.user;
+    if(user.role==="CEO" || user.role==="admin"){
+      let id = req.params.id;
+      if(!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ msg : 'not a valid id'});
+      }
+      let manga = await Manga.findByIdAndDelete(id);
+      if(!manga) {
+          return res.status(404).json({ msg : 'recipe not found'});
+      }
+      return res.json(manga);
+    }
+    return res.json({msg:"Not allowed to delete!"}).status(400)
+}catch(e) {
+    return res.status(500).json({ msg : 'internet server error'});
+}
+}
 
 exports.getMangaById = async (req, res) => {
   try {

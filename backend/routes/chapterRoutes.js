@@ -7,5 +7,6 @@ const AuthMiddleware = require('../middlewares/AuthMiddleware');
 router.get('/:mangaId',AuthMiddleware, chapterController.getAllChapters);
 router.get('/detail/:chapterId',AuthMiddleware, chapterController.getChapterById); // New route
 router.post('/',AuthMiddleware, chapterController.createChapter);
+router.patch('/detail/:id',AuthMiddleware,chapterController.edit)
 
 module.exports = router;

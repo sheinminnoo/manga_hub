@@ -67,48 +67,6 @@ const Navbar = () => {
                             >
                                 About
                             </Link>
-                            <div className="relative">
-                                <button
-                                    className="text-gray-800 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium flex items-center focus:outline-none"
-                                    onClick={toggleCategories}
-                                >
-                                    Categories
-                                    <svg
-                                        className="w-5 h-5 ml-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M19 9l-7 7-7-7"
-                                        ></path>
-                                    </svg>
-                                </button>
-                                <div className={`absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-2 ${isCategoriesOpen ? 'block' : 'hidden'}`}>
-                                    <Link
-                                        to="/category/action"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                    >
-                                        Action
-                                    </Link>
-                                    <Link
-                                        to="/category/romance"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                    >
-                                        Romance
-                                    </Link>
-                                    <Link
-                                        to="/category/comedy"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                    >
-                                        Comedy
-                                    </Link>
-                                </div>
-                            </div>
                             <Link
                                 to="/contact"
                                 className="text-gray-800 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
@@ -131,6 +89,16 @@ const Navbar = () => {
                                     </Link>
                                 </>
                             )}
+                            {user && (user.role === 'admin' || user.role === 'CEO') && (
+                                <>
+                                    <Link
+                                        to="/uploadImage"
+                                        className="text-gray-800 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
+                                    >
+                                        Upload Images
+                                    </Link>
+                                </>
+                            )}
                             {!!user && (
                                 <Link
                                     to={`/${user.username}/dashboard`}
@@ -139,6 +107,12 @@ const Navbar = () => {
                                     Dashboard
                                 </Link>
                             )}
+                            <Link
+                                to="/favorites"
+                                className="text-gray-800 hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium"
+                            >
+                                Favorites
+                            </Link>
                             {!user && (
                                 <>
                                     <Link
@@ -223,64 +197,6 @@ const Navbar = () => {
                         >
                             About
                         </Link>
-                        <div className="relative group" ref={categoriesRef}>
-                            <button
-                                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-800 hover:text-gray-600 hover:bg-gray-50 flex items-center justify-between"
-                                onClick={toggleCategories}
-                            >
-                                Categories
-                                <svg
-                                    className={`w-5 h-5 ml-1 transition-transform duration-300 ${
-                                        isCategoriesOpen ? 'rotate-180' : ''
-                                    }`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M19 9l-7 7-7-7"
-                                    ></path>
-                                </svg>
-                            </button>
-                            {isCategoriesOpen && (
-                                <div className="mt-2 bg-white border border-gray-200 rounded-md shadow-lg py-2">
-                                    <Link
-                                        to="/category/action"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            setIsCategoriesOpen(false);
-                                        }}
-                                    >
-                                        Action
-                                    </Link>
-                                    <Link
-                                        to="/category/romance"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            setIsCategoriesOpen(false);
-                                        }}
-                                    >
-                                        Romance
-                                    </Link>
-                                    <Link
-                                        to="/category/comedy"
-                                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            setIsCategoriesOpen(false);
-                                        }}
-                                    >
-                                        Comedy
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
                         <Link
                             to="/contact"
                             className="block px-3 py-2 rounded-md text-base font-medium text-gray-800 hover:text-gray-600 hover:bg-gray-50"
@@ -315,6 +231,20 @@ const Navbar = () => {
                                 </Link>
                             </>
                         )}
+                        {user && (user.role === 'admin' || user.role === 'CEO') && (
+                            <>
+                                <Link
+                                    to="/uploadImage"
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-800 hover:text-gray-600 hover:bg-gray-50"
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        setIsCategoriesOpen(false);
+                                    }}
+                                >
+                                    Upload Images
+                                </Link>
+                            </>
+                        )}
                         {!!user && (
                             <Link
                                 to={`/${user?.username}/dashboard`}
@@ -327,6 +257,16 @@ const Navbar = () => {
                                 Dashboard
                             </Link>
                         )}
+                        <Link
+                            to="/favorites"
+                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-800 hover:text-gray-600 hover:bg-gray-50"
+                            onClick={() => {
+                                setIsMenuOpen(false);
+                                setIsCategoriesOpen(false);
+                            }}
+                        >
+                            Favorite
+                        </Link>
                         {!user && (
                             <>
                                 <Link

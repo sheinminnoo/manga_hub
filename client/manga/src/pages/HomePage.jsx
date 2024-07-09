@@ -16,9 +16,15 @@ const HomePage = () => {
 
     useEffect(() => {
         const fetchOngoing = async () => {
-            const res = await axios.get('/api/manga/status/ongoing');
-            if (res.status === 200) {
-                setOngoingManga(res.data);
+            try {
+                const res = await axios.get('/api/manga/status/ongoing');
+                if (res.status === 200) {
+                    setOngoingManga(res.data);
+                } else {
+                    setErrors('Failed to fetch ongoing mangas');
+                }
+            } catch (error) {
+                setErrors(error.message);
             }
         };
         fetchOngoing();
@@ -31,7 +37,7 @@ const HomePage = () => {
                 if (res.status === 200) {
                     setMangas(res.data);
                 } else {
-                    setErrors('Failed to fetch mangas');
+                    setErrors('Failed to fetch all mangas');
                 }
             } catch (error) {
                 setErrors(error.message);
@@ -44,13 +50,37 @@ const HomePage = () => {
 
     useEffect(() => {
         const fetchCompletedManga = async () => {
-            const res = await axios.get('/api/manga/status/completed');
-            if (res.status === 200) {
-                setCompletedManga(res.data);
+            try {
+                const res = await axios.get('/api/manga/status/completed');
+                if (res.status === 200) {
+                    setCompletedManga(res.data);
+                } else {
+                    setErrors('Failed to fetch completed mangas');
+                }
+            } catch (error) {
+                setErrors(error.message);
             }
         };
         fetchCompletedManga();
     }, []);
+
+    const handleDelete = async (mangaId) => {
+        try {
+            const res = await axios.delete(`/api/manga/${mangaId}`);
+            if (res.status === 200) {
+                // Refresh data after successful delete
+                const updatedMangas = mangas.filter(manga => manga._id !== mangaId);
+                setMangas(updatedMangas);
+                setOngoingManga(ongoingManga.filter(manga => manga._id !== mangaId));
+                setCompletedManga(completedManga.filter(manga => manga._id !== mangaId));
+                console.log(`Deleted manga with ID: ${mangaId}`);
+            } else {
+                console.error('Failed to delete manga');
+            }
+        } catch (error) {
+            console.error('Error deleting manga:', error);
+        }
+    };
 
     const renderSection = (title, mangas, Component) => (
         <section className="mb-12">
@@ -58,7 +88,7 @@ const HomePage = () => {
             <div className="flex overflow-x-auto space-x-4 pb-4 smooth-scroll">
                 {mangas.map(manga => (
                     <div className="flex-shrink-0 w-64" key={manga._id}>
-                        <Component manga={manga} />
+                        <Component manga={manga} onDelete={handleDelete} />
                     </div>
                 ))}
             </div>

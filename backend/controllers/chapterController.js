@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const Chapter = require('../models/Chapter');
 const Manga = require('../models/Manga');
 const User = require('../models/User');
@@ -21,6 +22,28 @@ exports.getChapterById = async (req, res) => {
   }
 };
 
+exports.edit = async (req,res)=>{
+  try{
+    let user = req.user;
+    console.log(user)
+    if(user.role==="CEO"||user.role==="admin"){
+      let id = req.params.id;
+      if(!mongoose.Types.ObjectId.isValid(id)){
+        return  res.json({msg:"Invalid Id"}).status(400)
+      };
+      let chapter = await Chapter.findByIdAndUpdate(id,{
+        ...req.body
+      });
+      if(!chapter){
+        return res.json({msg:"Not found Chapter"})
+      }
+      return res.json(chapter)
+    }
+      return res.json({msg:"You are not allowed to manage!"})
+  }catch(err){
+    return res.status(500).json({ message: err.message });
+  }
+}
 
 exports.createChapter = async (req, res) => {
   const chapter = new Chapter({

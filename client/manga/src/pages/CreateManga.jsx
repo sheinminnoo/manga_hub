@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from '../helpers/axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
 
-const CreateManga = () => {
+const CreateManga = ({manga}) => {
+  const {id} = useParams();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [genres, setGenres] = useState([]);
@@ -18,6 +21,27 @@ const CreateManga = () => {
   const [popularity, setPopularity] = useState(0);
   const [createdAt, setCreatedAt] = useState(new Date().toISOString());
   const [isLoading, setIsLoading] = useState(false);
+
+  // edit manga
+  useEffect(()=>{
+      const fetchManga = async () =>{
+        if(id){
+          let res = await axios.get("/api/manga/" + id)
+          if(res.status===200){
+            setTitle(res.data.title);
+            setAuthor(res.data.author);
+            setGenres(res.data.genres || []);
+            setDescription(res.data.description);
+            setCoverImage(res.data.coverImage);
+            setChapters(res.data.chapters || []);
+            setOngoing(res.data.ongoing);
+            setPopularity(res.data.popularity);
+            setCreatedAt(res.data.createdAt);
+          }
+        }
+      }
+      fetchManga();
+  },[id]);
 
   const handleAddGenre = () => {
     if (genreInput.trim() !== '') {
@@ -88,12 +112,23 @@ const CreateManga = () => {
         popularity: parseInt(popularity, 10),
         createdAt
       };
-      const res = await axios.post('/api/manga', newManga);
-      if (res.status === 201) {
-        toast.success("Manga Created Successfully.");
-        await new Promise(resolve =>setTimeout(resolve,1000))
-        clearForm();
-        navigate('/')
+      let res;
+      if(id){
+        res = await axios.patch('/api/manga/' + id, newManga);
+        if (res.status === 200) {
+          toast.success("Manga Updated Successfully.");
+          await new Promise(resolve =>setTimeout(resolve,1000))
+          clearForm();
+          navigate('/')
+        }
+      }else{
+        res = await axios.post('/api/manga', newManga);
+        if (res.status === 201) {
+          toast.success("Manga Created Successfully.");
+          await new Promise(resolve =>setTimeout(resolve,1000))
+          clearForm();
+          navigate('/')
+        }
       }
     } catch (error) {
       handleErrors(error);
@@ -111,7 +146,7 @@ const CreateManga = () => {
 >
     <div className="min-h-screen flex items-center justify-center pt-10 pb-10">
       <div className="max-w-3xl w-full bg-white rounded-lg shadow-lg p-8 md:p-12">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Create New Manga</h2>
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">{id ? "Edit Manga" : "Create New Manga"}</h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -201,18 +236,21 @@ const CreateManga = () => {
           <div>
             <label htmlFor="chapters" className="block text-gray-700 font-semibold mb-2">Chapters</label>
             <div className="flex flex-wrap items-center mb-4">
-              {chapters.map((chapter, index) => (
-                <div key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800 mr-2 mb-2">
-                  {chapter}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveChapter(index)}
-                    className="ml-2 font-bold text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
+            {chapters.map((chapter, index) => (
+              <div key={index} className="pl-5 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800 mr-2 mb-2">
+                {chapter.title} {/* Adjust the property name based on your actual chapter object structure */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveChapter(index)}
+                  className="ml-2 font-bold text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  &times;
+                </button>
+                <Link to={`/edit/chapters/${chapter._id}`} className="text-gray-500 hover:text-gray-900 transition-colors duration-300">
+                <FontAwesomeIcon icon={faEdit} size="lg" className="text-gray-500 hover:text-gray-900 transition-colors duration-300" />
+                </Link>
+              </div>
+            ))}
             </div>
             <div className="flex items-center">
               <input
@@ -276,7 +314,8 @@ const CreateManga = () => {
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
               disabled={isLoading}
             >
-              {isLoading ? "Creating Manga..." : "Create Manga"}
+            {isLoading ? (id ? "Updating Manga..." : "Creating Manga...")
+             : (id ? "Update Manga" : "Create Manga")}
             </button>
           </div>
         </form>
