@@ -6,8 +6,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin', 'CEO'], default: 'user' },
+  profileImage: { type: String }, // Store file ID or filename
   createdAt: { type: Date, default: Date.now },
-  profile: { type: String }
 });
 
 UserSchema.statics.login = async function(email, password) {

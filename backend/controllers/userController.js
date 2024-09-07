@@ -10,42 +10,15 @@ const UserController = {
     return res.json(req.user);
   },
 
-  uploadProfile: async (req, res) => {
-    try {
-      let id = req.user._id;
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ msg: "Not a valid id" });
-      }
-      let user = await User.findByIdAndUpdate(id, {
-        profile: '/' + req.file.filename
-      });
-      let fileExists;
-      let path = __dirname+"/../public"+user.profile;
-      try{
-        await fs.access(path);
-        fileExists = true;
-      }catch {
-        fileExists = false;
-      }
-      if(fileExists){
-        fs.unlink(path);
-      }
-      if (!user) {
-        return res.status(404).json({ msg: "Not found user" });
-      }
-      return res.json(user);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-  },
-
   register: async (req, res) => {
     try {
       const { username, email, password, cpassword, role } = req.body;
       const userExist = await User.findOne({ email });
       if (userExist) {
         return res.status(400).json({ error: 'User already registered' });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
       }
       if (password !== cpassword) {
         return res.status(400).json({ error: 'Passwords do not match' });
@@ -60,6 +33,7 @@ const UserController = {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   },
+  
 
   login : async (req, res) => {
     try {
@@ -104,33 +78,56 @@ const UserController = {
 
   updateUser: async (req, res) => {
     const { userId } = req.params;
-    const { username, password, role } = req.body;
-  
-    if (req.user.role !== 'CEO' && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden' });
+    const { username, password, oldPassword, role } = req.body;
+
+    // Check if the user is trying to update their own data
+    if (req.user._id.toString() !== userId && req.user.role !== 'CEO' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Only CEO or Admin can update other users' });
     }
-  
+
+    // Admins cannot assign the CEO role
     if (req.user.role === 'admin' && role === 'CEO') {
-      return res.status(403).json({ error: 'Admins cannot assign CEO role' });
+      return res.status(403).json({ error: 'Admins cannot assign the CEO role' });
     }
-  
+
     try {
+      // Fetch the user from the database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
       const updates = { username };
+
+      // If the password needs to be updated, first check the old password
       if (password) {
+        if (!oldPassword) {
+          return res.status(400).json({ error: 'Old password is required for password updates' });
+        }
+
+        // Compare old password with the stored password
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ error: 'Old password is incorrect' });
+        }
+
+        // If old password matches, hash the new password
         const hashValue = await bcrypt.hash(password, 10);
         updates.password = hashValue;
       }
-      if (role && req.user.role === 'CEO') {
+
+      // CEO can update the role; other users cannot
+      if (req.user.role === 'CEO' && role) {
         updates.role = role;
       }
-  
+
       const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password');
       return res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user:", error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
-  },
+},
   
   deleteUser: async (req, res) => {
     const { userId } = req.params;
@@ -154,7 +151,6 @@ const UserController = {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   },
-  
 };
 
 module.exports = UserController;

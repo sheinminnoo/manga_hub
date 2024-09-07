@@ -15,16 +15,6 @@ const Login = () => {
     const navigate = useNavigate();
     const { dispatch } = useContext(AuthContext);
 
-    useEffect(() => {
-        // Disable scrolling when the component is mounted
-        document.body.style.overflow = 'hidden';
-        
-        // Enable scrolling when the component is unmounted
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, []);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email || !password) {

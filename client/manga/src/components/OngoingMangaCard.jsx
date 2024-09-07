@@ -9,8 +9,11 @@ const OngoingMangaCard = ({ manga, onDelete }) => {
     const { user } = useContext(AuthContext);
 
     const deleteManga = (event) => {
-        event.preventDefault(); // Prevent default form submission
-        onDelete(manga._id); // Call the onDelete function with manga id
+        event.preventDefault();
+        const confirmDelete = window.confirm("Are you sure to delete this manga??") ;
+        if(confirmDelete){
+            onDelete(manga._id); 
+        }
     };
 
     return (

@@ -1,7 +1,39 @@
 const { default: mongoose } = require("mongoose");
 const Manga = require("../models/Manga");
 const User = require("../models/User");
-const emailQueue = require('../Queues/emailQueue')
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465, // Use 587 for TLS
+  secure: true, // Use false for TLS
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS, // App password
+  },
+});
+
+const generateEmailTemplate = (title, author, description, coverImage) => `
+  <div style="font-family: Arial, sans-serif; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 10px;">
+      <h1 style="text-align: center; color: #4CAF50;">New Manga Released!</h1>
+      <div style="text-align: center;">
+        <img src="${coverImage}" alt="${title}" style="width: 100%; max-width: 300px; height: auto; border-radius: 10px;">
+      </div>
+      <h2>${title}</h2>
+      <h3>by ${author}</h3>
+      <p>${description}</p>
+      <div style="text-align: center;">
+        <a href="https://tempestmanga.online" style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #4CAF50; text-decoration: none; border-radius: 5px;">Read Now</a>
+      </div>
+    </div>
+    <footer style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+      © 2024 Manga Hub. All rights reserved.
+    </footer>
+  </div>
+`;
 
 exports.getAllManga = async (req, res) => {
   try {
@@ -20,24 +52,34 @@ exports.createManga = async (req, res) => {
     description: req.body.description,
     coverImage: req.body.coverImage,
     ongoing: req.body.ongoing,
-    popularity: req.body.popularity
+    popularity: req.body.popularity,
   });
 
   try {
     const newManga = await manga.save();
-    let users = await User.find(null,['email']);
-    let emails = users.map(user=>user.email);
-    emails = emails.filter(email=>email !== req.user.email)
-    emailQueue.add({
-      view : 'email',
-      data : {
-          name : req.user.username,
-          manga
-      },
-      from : req.user.email,
-      to : emails,
-      subject : "New Manga is created recendly."
-  })
+
+    const users = await User.find({}, 'email');
+    const emailAddresses = users.map(user => user.email);
+
+    emailAddresses.forEach(email => {
+      const html = generateEmailTemplate(newManga.title, newManga.author, newManga.description, newManga.coverImage);
+
+      const mailOptions = {
+        from: 'Manga Hub <no-reply@yourdomain.com>',
+        to: email,
+        subject: 'New Manga Released!',
+        html: html
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error(`Error sending email to ${email}:`, error);
+        } else {
+          console.log(`Email sent to ${email}: ${info.response}`);
+        }
+      });
+    });
+
     return res.status(201).json(newManga);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -132,11 +174,10 @@ exports.getCompletedManga = async (req, res) => {
 };
 
 exports.getPopularManga = async (req, res) => {
-    try {
-      const popularManga = await Manga.find({ popularity: { $gte: 90 } });
-      res.json(popularManga);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  };
-  
+  try {
+    const popularManga = await Manga.find({ popularity: { $gte: 90 } });
+    res.json(popularManga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

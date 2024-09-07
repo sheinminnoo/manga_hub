@@ -1,7 +1,7 @@
 import axios from '../helpers/axios';
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../contexts/AuthContext';
 
 const ChapterDetail = () => {
@@ -115,8 +115,31 @@ const ChapterDetail = () => {
     }
   };
 
-  if (loading) return <div className="text-center text-2xl text-gray-600 mt-20">Loading...</div>;
-  if (error) return <div className="text-center text-2xl text-red-600 mt-20">Error: {error}</div>;
+  if (loading) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="flex items-center justify-center space-x-4"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5, ease: 'easeInOut', repeat: Infinity, repeatType: 'mirror' }}
+        >
+          <div className="w-8 h-8 bg-blue-500 rounded-full animate-ping"></div>
+          <div className="w-8 h-8 bg-green-500 rounded-full animate-ping"></div>
+          <div className="w-8 h-8 bg-red-500 rounded-full animate-ping"></div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-center text-2xl text-red-600 mt-20">Error: {error}</div>;
+  }
 
   return (
     <motion.div
@@ -132,80 +155,78 @@ const ChapterDetail = () => {
         ))}
       </div>
       <div className="mt-8 pb-20">
-  <h2 className="text-2xl font-semibold mb-6 text-white">Comments</h2>
-  {user && (
-    <div className="mb-6 flex flex-col space-y-4">
-      <textarea
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Write a comment..."
-      ></textarea>
-      <button
-        onClick={handleCreateComment}
-        className="self-end px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        Post Comment
-      </button>
-    </div>
-  )}
-  <div className="space-y-6">
-    {comments.map((comment) => (
-      <div key={comment._id} className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md">
-        <img
-          //src={import.meta.env.VITE_BACKEND_URL + comment.profile}
-          src='https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjkzNy1hZXctMTY1LnBuZw.png'
-          alt={comment.username}
-          className="w-12 h-12 rounded-full"
-        />
-        <div className="flex-1">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-gray-800 font-semibold">{comment.username}</p>
-              <p className="text-gray-700">{comment.text}</p>
-              <p className="text-gray-500 text-sm">{new Date(comment.createdAt).toLocaleString()}</p>
-            </div>
-            {user && user._id === comment.userId && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    setEditingComment(comment._id);
-                    setEditedComment(comment.text);
-                  }}
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteComment(comment._id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
+        <h2 className="text-2xl font-semibold mb-6 text-white">Comments</h2>
+        {user && (
+          <div className="mb-6 flex flex-col space-y-4">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Write a comment..."
+            ></textarea>
+            <button
+              onClick={handleCreateComment}
+              className="self-end px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Post Comment
+            </button>
           </div>
-          {editingComment === comment._id && (
-            <div className="mt-2 flex flex-col space-y-2">
-              <textarea
-                value={editedComment}
-                onChange={(e) => setEditedComment(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              ></textarea>
-              <button
-                onClick={() => handleUpdateComment(comment._id)}
-                className="self-end px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Update Comment
-              </button>
+        )}
+        <div className="space-y-6">
+          {comments.map((comment) => (
+            <div key={comment._id} className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md">
+              <img
+                src='https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjkzNy1hZXctMTY1LnBuZw.png'
+                alt={comment.username}
+                className="w-12 h-12 rounded-full"
+              />
+              <div className="flex-1">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-gray-800 font-semibold">{comment.username}</p>
+                    <p className="text-gray-700">{comment.text}</p>
+                    <p className="text-gray-500 text-sm">{new Date(comment.createdAt).toLocaleString()}</p>
+                  </div>
+                  {user && user._id === comment.userId && (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setEditingComment(comment._id);
+                          setEditedComment(comment.text);
+                        }}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {editingComment === comment._id && (
+                  <div className="mt-2 flex flex-col space-y-2">
+                    <textarea
+                      value={editedComment}
+                      onChange={(e) => setEditedComment(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ></textarea>
+                    <button
+                      onClick={() => handleUpdateComment(comment._id)}
+                      className="self-end px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      Update Comment
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
-    ))}
-  </div>
-</div>
-
 
       {relatedChapters.length > 0 && (
         <div className="mt-8 pb-20">

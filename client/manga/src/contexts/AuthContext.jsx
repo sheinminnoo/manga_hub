@@ -1,5 +1,5 @@
 import { createContext, useEffect, useReducer } from "react";
-import axios from 'axios';
+import axios from '../helpers/axios';
 
 const AuthContext = createContext();
 

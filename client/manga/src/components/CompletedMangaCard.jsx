@@ -8,8 +8,14 @@ const CompletedMangaCard = ({ manga , onDelete }) => {
     
     const {user} = useContext(AuthContext)
     const deleteManga = (event) => {
-        event.preventDefault(); // Prevent default form submission
-        onDelete(manga._id); // Call the onDelete function with manga id
+        const confirmDelete = window.confirm(
+        "Are you sure to delete this manga?"
+        )
+        if(confirmDelete){
+            onDelete(manga._id);
+        }
+        event.preventDefault();
+         
     };
     return (
         <Link to={`/manga/${manga._id}`} key={manga._id} className="block group">

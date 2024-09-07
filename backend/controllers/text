@@ -1,0 +1,153 @@
+const { default: mongoose } = require("mongoose");
+const Manga = require("../models/Manga");
+const User = require("../models/User");
+const mailgun = require('mailgun-js');
+
+const DOMAIN = 'sandboxaf02fd6dfa7f48e29daee40702b39940.mailgun.org';
+const mg = mailgun({apiKey: 'YOUR_MAILGUN_API_KEY', domain: DOMAIN});
+exports.getAllManga = async (req, res) => {
+  try {
+    const manga = await Manga.find().populate('chapters');
+    res.json(manga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.createManga = async (req, res) => {
+    const manga = new Manga({
+      title: req.body.title,
+      author: req.body.author,
+      genres: req.body.genres,
+      description: req.body.description,
+      coverImage: req.body.coverImage,
+      ongoing: req.body.ongoing,
+      popularity: req.body.popularity,
+    });
+  
+    try {
+      const newManga = await manga.save();
+  
+      // Fetch all users' emails
+      const users = await User.find({}, 'email');
+      const emailAddresses = users.map(user => user.email);
+  
+      // Prepare email data
+      const emailData = {
+        from: 'Manga Hub <no-reply@sandboxaf02fd6dfa7f48e29daee40702b39940.mailgun.org>',
+        to: emailAddresses.join(','),
+        subject: 'New Manga Released!',
+        text: `A new manga titled "${newManga.title}" by ${newManga.author} has been released. Check it out now!`
+      };
+  
+      // Send email
+      mg.messages().send(emailData, (error, body) => {
+        if (error) {
+          console.error('Error sending email:', error);
+        } else {
+          console.log('Email sent:', body);
+        }
+      });
+  
+      return res.status(201).json(newManga);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  };
+
+exports.editManga = async(req,res)=>{
+  try{
+    let user = req.user;
+    console.log(user)
+    if(req.user.role==="CEO" || req.user.role==="admin"){
+      let id = req.params.id;
+      if(!mongoose.Types.ObjectId.isValid(id)){
+        return res.json({Msg:"not a valid id"}).status(400);
+      };
+      let manga = await Manga.findByIdAndUpdate(id ,{
+        ...req.body
+      });
+      if(!manga){
+        return res.json({msg : "Not found Manga"})
+      };
+      return res.json(manga)
+    }
+    return res.json({msg : "You are not accessed to edit manga"}).status(400);
+  }catch(err){
+    return res.status(400).json({ message: err.message });
+  }
+},
+
+exports.destroy = async (req,res) =>{
+  try {
+    let user = req.user;
+    if(user.role==="CEO" || user.role==="admin"){
+      let id = req.params.id;
+      if(!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ msg : 'not a valid id'});
+      }
+      let manga = await Manga.findByIdAndDelete(id);
+      if(!manga) {
+          return res.status(404).json({ msg : 'recipe not found'});
+      }
+      return res.json(manga);
+    }
+    return res.json({msg:"Not allowed to delete!"}).status(400)
+}catch(e) {
+    return res.status(500).json({ msg : 'internet server error'});
+}
+}
+
+exports.getMangaById = async (req, res) => {
+  try {
+    const manga = await Manga.findById(req.params.id).populate('chapters');
+    if (!manga) return res.status(404).json({ message: 'Manga not found' });
+    res.json(manga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getRelatedManga = async (req, res) => {
+  try {
+    const manga = await Manga.findById(req.params.id);
+    if (!manga) return res.status(404).json({ message: 'Manga not found' });
+
+    const relatedManga = await Manga.find({
+      $or: [{ author: manga.author }, { genres: { $in: manga.genres } }],
+      _id: { $ne: manga._id }
+    });
+
+    res.json(relatedManga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getOngoingManga = async (req, res) => {
+  try {
+    const ongoingManga = await Manga.find({ ongoing: true });
+    res.json(ongoingManga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getCompletedManga = async (req, res) => {
+  try {
+    const completedManga = await Manga.find({ ongoing: false });
+    res.json(completedManga);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getPopularManga = async (req, res) => {
+    try {
+      const popularManga = await Manga.find({ popularity: { $gte: 90 } });
+      res.json(popularManga);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+  

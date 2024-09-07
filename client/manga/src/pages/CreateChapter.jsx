@@ -13,6 +13,7 @@ const CreateChapter = () => {
   const [number, setNumber] = useState(1);
   const [pages, setPages] = useState([]);
   const [pageInput, setPageInput] = useState('');
+  const [editIndex, setEditIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -35,11 +36,23 @@ const CreateChapter = () => {
     fetchChapter();
   }, [id]);
 
-  const handleAddPage = () => {
+  const handleAddOrEditPage = () => {
     if (pageInput.trim() !== '') {
-      setPages([...pages, pageInput.trim()]);
+      if (editIndex !== null) {
+        const updatedPages = [...pages];
+        updatedPages[editIndex] = pageInput.trim();
+        setPages(updatedPages);
+        setEditIndex(null);
+      } else {
+        setPages([...pages, pageInput.trim()]);
+      }
       setPageInput('');
     }
+  };
+
+  const handleEditPage = (index) => {
+    setPageInput(pages[index]);
+    setEditIndex(index);
   };
 
   const handleRemovePage = (index) => {
@@ -52,6 +65,8 @@ const CreateChapter = () => {
     setTitle('');
     setNumber(1);
     setPages([]);
+    setPageInput('');
+    setEditIndex(null);
   };
 
   const handleErrors = (error) => {
@@ -160,18 +175,25 @@ const CreateChapter = () => {
                 Pages
               </label>
               <div className="mb-4 overflow-auto max-h-40">
-              {Array.isArray(pages) && pages.map((page, index) => (
-                <div key={index} className="page-badge">
-                  {page}
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePage(index)}
-                    className="remove-button"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
+                {Array.isArray(pages) && pages.map((page, index) => (
+                  <div key={index} className="page-badge">
+                    {page}
+                    <button
+                      type="button"
+                      onClick={() => handleEditPage(index)}
+                      className="edit-button"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePage(index)}
+                      className="remove-button"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
               </div>
               <div className="flex items-center">
                 <input
@@ -180,14 +202,14 @@ const CreateChapter = () => {
                   value={pageInput}
                   onChange={(e) => setPageInput(e.target.value)}
                   className="input-field"
-                  placeholder="Add Page"
+                  placeholder="Add or Edit Page"
                 />
                 <button
                   type="button"
-                  onClick={handleAddPage}
+                  onClick={handleAddOrEditPage}
                   className="add-button"
                 >
-                  Add
+                  {editIndex !== null ? 'Update' : 'Add'}
                 </button>
               </div>
             </div>

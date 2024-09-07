@@ -16,16 +16,6 @@ const Register = () => {
     const [loading, setLoading] = useState(false); // Add loading state
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Disable scrolling when the component is mounted
-        document.body.style.overflow = 'hidden';
-        
-        // Enable scrolling when the component is unmounted
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, []);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!username || !email || !password || !cpassword) {

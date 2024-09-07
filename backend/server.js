@@ -8,8 +8,6 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const AuthMiddleware = require('./middlewares/AuthMiddleware');
-const sendEmail = require('./helpers/sendEmail');
-
 // Load environment variables
 dotenv.config();
 
@@ -24,22 +22,6 @@ app.use(cors({
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-
-// Nodemailer example route
-app.get('/send-email', async (req, res) => {
-    try {
-        await sendEmail({
-            view: 'email',
-            data: { name: "AungAung" },
-            from: "mgmg@gmail.com",
-            to: "aungaung@gmail.com",
-            subject: "Hello AungAung"
-        });
-        return res.send('Email has been sent.');
-    } catch (e) {
-        return res.status(500).json({ message: e.message, status: 500 });
-    }
-});
 
 // Import routes
 const mangaRoutes = require('./routes/mangaRoutes');
