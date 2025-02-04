@@ -7,6 +7,7 @@ Manga Hub is a full-stack web application where users can explore, read, and man
 - 🔍 Browse a wide collection of mangas
 - 📚 Read manga chapters with an optimized reader
 - ❤️ Add mangas to your favorites
+- ✏️ Edit your own profile (username & password)
 - 📤 Upload and manage your own manga (CEO,Admin)
 - 🔔 Receive updates on new mangas / chapters
 - 💬 User authentication (Login/Register)
