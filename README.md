@@ -23,3 +23,6 @@ Manga Hub is a full-stack web application where users can explore, read, and man
 1. **Clone the repository**  
    ```sh
    git clone https://github.com/sheinminnoo/manga_hub.git
+
+You can customize it based on your actual project features and API structure. Let me know if you need any modifications! 🚀
+## tempestoii
